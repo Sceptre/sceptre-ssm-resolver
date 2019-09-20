@@ -22,33 +22,29 @@ class SsmBase(Resolver):
         self.logger = logging.getLogger(__name__)
         super(SsmBase, self).__init__(*args, **kwargs)
 
-    def _get_parameter_value(self, stack_name, param, profile=None, region=None):
+    def _get_parameter_value(self, param, profile=None, region=None):
         """
         Attempts to get the SSM parameter named by ``param``
 
-        :param stack_name: Name of the Stack
-        :type stack_name: str
         :param param: The name of the SSM parameter in which to return.
         :type param: str
         :returns: SSM parameter value.
         :rtype: str
         :raises: KeyError
         """
-        response = self._request_parameter(stack_name, param, profile, region)
+        response = self._request_parameter(param, profile, region)
 
         try:
             return response['Parameter']['Value']
         except KeyError:
             self.logger.error("%s - Invalid response looking for: %s",
-                              stack_name, param)
+                              self.stack.name, param)
             raise
 
-    def _request_parameter(self, stack_name, param, profile=None, region=None):
+    def _request_parameter(self, param, profile=None, region=None):
         """
         Communicates with AWS CloudFormation to fetch SSM parameters.
 
-        :param stack_name: Name of the Stack
-        :type stack_name: str
         :returns: The decoded value of the parameter
         :rtype: dict
         :raises: resolver.exceptions.ParameterNotFoundError
@@ -63,12 +59,11 @@ class SsmBase(Resolver):
                         "WithDecryption": True},
                 profile=profile,
                 region=region,
-                stack_name=stack_name
             )
         except ClientError as e:
             if "ParameterNotFound" in e.response["Error"]["Code"]:
                 self.logger.error("%s - ParameterNotFound: %s",
-                                  stack_name, param)
+                                  self.stack.name, param)
                 raise ParameterNotFoundError(e.response["Error"]["Message"])
             else:
                 raise e
@@ -101,9 +96,8 @@ class SSM(SsmBase):
         value = None
         profile = self.stack.profile
         region = self.stack.region
-        stack_name = self.stack.name
         if self.argument:
             param = self.argument
-            value = self._get_parameter_value(stack_name, param, profile, region)
+            value = self._get_parameter_value(param, profile, region)
 
         return value

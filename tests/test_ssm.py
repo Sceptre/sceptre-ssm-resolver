@@ -19,7 +19,6 @@ class TestSsmResolver(object):
     )
     def test_resolve(self, mock_get_parameter_value):
         stack = MagicMock(spec=Stack)
-        stack.name = "test_name"
         stack.profile = "test_profile"
         stack.region = "test_region"
         stack.dependencies = []
@@ -30,7 +29,7 @@ class TestSsmResolver(object):
         mock_get_parameter_value.return_value = "parameter_value"
         stack_ssm_resolver.resolve()
         mock_get_parameter_value.assert_called_once_with(
-            stack.name, "/dev/DbPassword", stack.profile, stack.region
+            "/dev/DbPassword", "test_profile", "test_region"
         )
         assert stack.dependencies == []
 
@@ -54,6 +53,7 @@ class TestSsmBase(object):
 
     def setup_method(self, test_method):
         self.stack = MagicMock(spec=Stack)
+        self.stack.name = "test_name"
         self.stack._connection_manager = MagicMock(
             spec=ConnectionManager
         )
@@ -75,11 +75,7 @@ class TestSsmBase(object):
                 "ARN": "arn:aws:ssm:us-east-1:111111111111:parameter/dev/DbPassword"
             }
         }
-
-        response = self.base_ssm._get_parameter_value(
-            sentinel.stack_name, "/dev/DbPassword"
-        )
-
+        response = self.base_ssm._get_parameter_value("/dev/DbPassword")
         assert response == "Secret"
 
     @patch(
@@ -88,14 +84,12 @@ class TestSsmBase(object):
     def test_get_parameter_value_with_invalid_response(self, mock_request_parameter):
         mock_request_parameter.return_value = {
             "Parameter": {
-                "Name": "/dev/DbPassword",
+                "Name": "/dev/DbPassword"
             }
         }
 
         with pytest.raises(KeyError):
-            self.base_ssm._get_parameter_value(
-                sentinel.stack_name, None
-            )
+            self.base_ssm._get_parameter_value(None)
 
     def test_request_parameter_with_unkown_boto_error(self):
         self.stack.connection_manager.call.side_effect = ClientError(
@@ -109,9 +103,7 @@ class TestSsmBase(object):
         )
 
         with pytest.raises(ClientError):
-            self.base_ssm._request_parameter(
-                sentinel.stack_name, None
-            )
+            self.base_ssm._request_parameter(None)
 
     def test_request_parameter_with_parameter_not_found(self):
         self.stack.connection_manager.call.side_effect = ClientError(
@@ -125,6 +117,4 @@ class TestSsmBase(object):
         )
 
         with pytest.raises(ParameterNotFoundError):
-            self.base_ssm._request_parameter(
-                sentinel.stack_name, None
-            )
+            self.base_ssm._request_parameter(None)
