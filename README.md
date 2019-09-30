@@ -1,14 +1,39 @@
-# README
+---
+layout: docs
+title: Resolvers
+---
 
-Add your resolver readme here. Remember to include the following:
+# Overview
 
-- Tell people how to install it (e.g. pip install ...).
-- Be clear about the purpose of the resolver, its capabilities and limitations.
-- Tell people how to use it.
-- Give examples of the resolver in use.
+The purpose of this resolver is to retrieve values from the AWS SSM. 
 
-Read our wiki to learn how to use this repo:
-https://github.com/Sceptre/project/wiki/Sceptre-Resolver-Template
+## Available Resolvers
 
-If you have any questions or encounter an issue
-[please open an issue](https://github.com/Sceptre/project/issues/new)
+### ssm
+
+Fetches the value stored in AWS SSM Parameter Store.
+
+Syntax:
+
+```yaml
+parameter|sceptre_user_data:
+    <name>: !ssm /prefix/param
+```
+
+#### Example:
+
+Add a secure string to the SSM parameter store
+```
+aws ssm put-parameter --name /dev/DbPassword --value "mysecret" \
+--key-id alias/dev/kmskey --type "SecureString"
+```
+
+Setup sceptre template to retrieve and decrypt from parameter store
+```
+parameters:
+    database_password: !ssm /dev/DbPassword
+```
+
+Run sceptre with a user or role that has access to the secret.
+Sceptre will retrieve "mysecret" from the parameter store and passes
+it to the cloudformation _database_password_ paramter.
