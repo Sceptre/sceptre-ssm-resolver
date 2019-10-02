@@ -1,11 +1,12 @@
----
-layout: docs
-title: Resolvers
----
-
 # Overview
 
 The purpose of this resolver is to retrieve values from the AWS SSM. 
+
+## Install
+
+```bash
+pip install sceptre-ssm-resolver
+```
 
 ## Available Resolvers
 
@@ -23,13 +24,13 @@ parameter|sceptre_user_data:
 #### Example:
 
 Add a secure string to the SSM parameter store
-```
+```bash
 aws ssm put-parameter --name /dev/DbPassword --value "mysecret" \
 --key-id alias/dev/kmskey --type "SecureString"
 ```
 
 Setup sceptre template to retrieve and decrypt from parameter store
-```
+```yaml
 parameters:
     database_password: !ssm /dev/DbPassword
 ```
