@@ -14,13 +14,34 @@ from resolver.exceptions import ParameterNotFoundError
 
 class TestSsmResolver(object):
 
+    def test_resolve_str_arg_no_param_name(self):
+        stack = MagicMock(spec=Stack)
+        stack.profile = "test_profile"
+        stack.dependencies = []
+        stack._connection_manager = MagicMock(spec=ConnectionManager)
+        stack_ssm_resolver = SSM(
+            None, stack
+        )
+        with pytest.raises(ValueError):
+            stack_ssm_resolver.resolve()
+
+    def test_resolve_obj_arg_no_param_name(self):
+        stack = MagicMock(spec=Stack)
+        stack.profile = "test_profile"
+        stack.dependencies = []
+        stack._connection_manager = MagicMock(spec=ConnectionManager)
+        stack_ssm_resolver = SSM(
+            {}, stack
+        )
+        with pytest.raises(ValueError):
+            stack_ssm_resolver.resolve()
+
     @patch(
         "resolver.ssm.SSM._get_parameter_value"
     )
-    def test_resolve(self, mock_get_parameter_value):
+    def test_resolve_str_arg(self, mock_get_parameter_value):
         stack = MagicMock(spec=Stack)
         stack.profile = "test_profile"
-        stack.region = "test_region"
         stack.dependencies = []
         stack._connection_manager = MagicMock(spec=ConnectionManager)
         stack_ssm_resolver = SSM(
@@ -29,10 +50,42 @@ class TestSsmResolver(object):
         mock_get_parameter_value.return_value = "parameter_value"
         stack_ssm_resolver.resolve()
         mock_get_parameter_value.assert_called_once_with(
-            "/dev/DbPassword", "test_profile", "test_region"
+            "/dev/DbPassword", "test_profile"
         )
-        assert stack.dependencies == []
 
+    @patch(
+        "resolver.ssm.SSM._get_parameter_value"
+    )
+    def test_resolve_obj_arg_no_profile(self, mock_get_parameter_value):
+        stack = MagicMock(spec=Stack)
+        stack.profile = "test_profile"
+        stack.dependencies = []
+        stack._connection_manager = MagicMock(spec=ConnectionManager)
+        stack_ssm_resolver = SSM(
+            {"name": "/dev/DbPassword"}, stack
+        )
+        mock_get_parameter_value.return_value = "parameter_value"
+        stack_ssm_resolver.resolve()
+        mock_get_parameter_value.assert_called_once_with(
+            "/dev/DbPassword", "test_profile"
+        )
+
+    @patch(
+        "resolver.ssm.SSM._get_parameter_value"
+    )
+    def test_resolve_obj_arg_profile_override(self, mock_get_parameter_value):
+        stack = MagicMock(spec=Stack)
+        stack.profile = "test_profile"
+        stack.dependencies = []
+        stack._connection_manager = MagicMock(spec=ConnectionManager)
+        stack_ssm_resolver = SSM(
+            {"name": "/dev/DbPassword", "profile": "new_profile"}, stack
+        )
+        mock_get_parameter_value.return_value = "parameter_value"
+        stack_ssm_resolver.resolve()
+        mock_get_parameter_value.assert_called_once_with(
+            "/dev/DbPassword", "new_profile"
+        )
 
 class MockSsmBase(SsmBase):
     """

@@ -14,12 +14,27 @@ pip install sceptre-ssm-resolver
 
 Fetches the value stored in AWS SSM Parameter Store.
 
+__Note:__ Sceptre must be run with a user or role that has access to the parameter store
+
 Syntax:
 
 ```yaml
 parameter|sceptre_user_data:
-    <name>: !ssm /prefix/param
+  <name>: !ssm /prefix/param
 ```
+
+```yaml
+parameter|sceptre_user_data:
+  <name>: !ssm
+    name: /prefix/param
+    profile: OtherAccount
+```
+
+```yaml
+parameter|sceptre_user_data:
+  <name>: !ssm {"name": "/prefix/param", "profile": "OtherAccount"}
+```
+
 
 #### Example:
 
@@ -29,12 +44,17 @@ aws ssm put-parameter --name /dev/DbPassword --value "mysecret" \
 --key-id alias/dev/kmskey --type "SecureString"
 ```
 
-Setup sceptre template to retrieve and decrypt from parameter store
+Retrieve and decrypt SSM parameter from the same account that the
+stack is being deployed to:
 ```yaml
 parameters:
-    database_password: !ssm /dev/DbPassword
+  database_password: !ssm /dev/DbPassword
 ```
 
-Run sceptre with a user or role that has access to the secret.
-Sceptre will retrieve "mysecret" from the parameter store and passes
-it to the cloudformation _database_password_ paramter.
+Retrieve and decrypt SSM parameter from another AWS account:
+```yaml
+parameters:
+  database_password: !ssm
+    name: /dev/DbPassword
+    profile: OtherAccount
+```
