@@ -5,7 +5,6 @@ import six
 import logging
 
 from botocore.exceptions import ClientError
-
 from sceptre.resolvers import Resolver
 from resolver.exceptions import ParameterNotFoundError
 
@@ -22,7 +21,7 @@ class SsmBase(Resolver):
         self.logger = logging.getLogger(__name__)
         super(SsmBase, self).__init__(*args, **kwargs)
 
-    def _get_parameter_value(self, param, profile=None, region=None):
+    def _get_parameter_value(self, param, profile=None):
         """
         Attempts to get the SSM parameter named by ``param``
 
@@ -32,7 +31,7 @@ class SsmBase(Resolver):
         :rtype: str
         :raises: KeyError
         """
-        response = self._request_parameter(param, profile, region)
+        response = self._request_parameter(param, profile)
 
         try:
             return response['Parameter']['Value']
@@ -41,7 +40,7 @@ class SsmBase(Resolver):
                               self.stack.name, param)
             raise
 
-    def _request_parameter(self, param, profile=None, region=None):
+    def _request_parameter(self, param, profile=None):
         """
         Communicates with AWS CloudFormation to fetch SSM parameters.
 
@@ -57,8 +56,7 @@ class SsmBase(Resolver):
                 command="get_parameter",
                 kwargs={"Name": param,
                         "WithDecryption": True},
-                profile=profile,
-                region=region,
+                profile=profile
             )
         except ClientError as e:
             if "ParameterNotFound" in e.response["Error"]["Code"]:
@@ -89,15 +87,24 @@ class SSM(SsmBase):
         :returns: The decoded value of the SSM parameter
         :rtype: str
         """
-        self.logger.debug(
-            "Resolving SSM parameter: {0}".format(self.argument)
-        )
+        args = self.argument
+        if not args:
+            raise ValueError("Missing SSM parameter name")
 
         value = None
+        self.logger.debug(
+            "Resolving SSM parameter: {0}".format(args)
+        )
+        name = self.argument
         profile = self.stack.profile
-        region = self.stack.region
-        if self.argument:
-            param = self.argument
-            value = self._get_parameter_value(param, profile, region)
+        if isinstance(args, dict):
+            if 'name' in args:
+                name = args['name']
+            else:
+                raise ValueError("Missing SSM parameter name")
 
+            if 'profile' in args:
+                profile = args['profile']
+
+        value = self._get_parameter_value(name, profile)
         return value
