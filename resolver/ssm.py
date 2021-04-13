@@ -21,7 +21,7 @@ class SsmBase(Resolver):
         self.logger = logging.getLogger(__name__)
         super(SsmBase, self).__init__(*args, **kwargs)
 
-    def _get_parameter_value(self, param, profile=None):
+    def _get_parameter_value(self, param, region, profile=None):
         """
         Attempts to get the SSM parameter named by ``param``
 
@@ -31,7 +31,7 @@ class SsmBase(Resolver):
         :rtype: str
         :raises: KeyError
         """
-        response = self._request_parameter(param, profile)
+        response = self._request_parameter(param, region, profile)
 
         try:
             return response['Parameter']['Value']
@@ -40,7 +40,7 @@ class SsmBase(Resolver):
                               self.stack.name, param)
             raise
 
-    def _request_parameter(self, param, profile=None):
+    def _request_parameter(self, param, region, profile=None):
         """
         Communicates with AWS CloudFormation to fetch SSM parameters.
 
@@ -56,6 +56,7 @@ class SsmBase(Resolver):
                 command="get_parameter",
                 kwargs={"Name": param,
                         "WithDecryption": True},
+                region=region,
                 profile=profile
             )
         except ClientError as e:
@@ -96,6 +97,7 @@ class SSM(SsmBase):
             "Resolving SSM parameter: {0}".format(args)
         )
         name = self.argument
+        region = self.stack.region
         profile = self.stack.profile
         if isinstance(args, dict):
             if 'name' in args:
@@ -103,8 +105,8 @@ class SSM(SsmBase):
             else:
                 raise ValueError("Missing SSM parameter name")
 
-            if 'profile' in args:
-                profile = args['profile']
+            profile = args.get('profile', profile)
+            region = args.get('region', region)
 
-        value = self._get_parameter_value(name, profile)
+        value = self._get_parameter_value(name, region, profile)
         return value
