@@ -8,10 +8,10 @@ jobs:
     steps:
       - checkout
 
-#      - restore_cache:
-#          key:
-#            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-#            }}
+      - restore_cache:
+          key:
+            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
+            }}
 
       - run:
           name: Install Dependencies
@@ -21,12 +21,12 @@ jobs:
             pip3 install --upgrade pip
             pip3 install -r requirements.txt
 
-#      - save_cache:
-#          key:
-#            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-#            }}
-#          paths:
-#            - 'venv'
+      - save_cache:
+          key:
+            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
+            }}
+          paths:
+            - 'venv'
 
       - run:
           name: Install Resolver
@@ -49,10 +49,10 @@ jobs:
 
       - checkout
 
-#      - restore_cache:
-#          key:
-#            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-#            }}
+      - restore_cache:
+          key:
+            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
+            }}
 
       - run:
           name: Install Dependencies
@@ -62,12 +62,12 @@ jobs:
             pip3 install --upgrade pip
             pip3 install -r requirements.txt
 
-#      - save_cache:
-#          key:
-#            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-#            }}
-#          paths:
-#            - 'venv'
+      - save_cache:
+          key:
+            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
+            }}
+          paths:
+            - 'venv'
 
       - run:
           name: Linting
