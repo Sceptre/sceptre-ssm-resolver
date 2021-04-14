@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 # More information on setting values:
 # https://github.com/Sceptre/project/wiki/sceptre-resolver-template
@@ -62,8 +62,6 @@ setup(
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "Environment :: Console",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7"
     ],
