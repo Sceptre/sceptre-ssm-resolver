@@ -87,6 +87,7 @@ class TestSsmResolver(object):
             "/dev/DbPassword", "new_profile"
         )
 
+
 class MockSsmBase(SsmBase):
     """
     MockBaseResolver inherits from the abstract base class

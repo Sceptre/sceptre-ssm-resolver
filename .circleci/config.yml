@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cloudreach/sceptre-circleci-sonarqube:latest
+      - image: cloudreach/sceptre-circleci:0.7.0
 
     steps:
       - checkout
@@ -41,7 +41,7 @@ jobs:
 
   lint-and-unit-test:
     docker:
-      - image: cloudreach/sceptre-circleci-sonarqube:latest
+      - image: cloudreach/sceptre-circleci:0.7.0
 
     steps:
       - attach_workspace:
@@ -109,22 +109,22 @@ jobs:
           paths:
             - project
 
-  sonar:
-    docker:
-      - image: cloudreach/sceptre-circleci-sonarqube:latest
-    steps:
-      - attach_workspace:
-          at: /home/circleci
-
-      - run:
-          name: Run Sonarqube
-          command: |
-            . venv/bin/activate
-            make sonar
+#  sonar:
+#    docker:
+#      - image: cloudreach/sceptre-circleci:0.7.0
+#    steps:
+#      - attach_workspace:
+#          at: /home/circleci
+#
+#      - run:
+#          name: Run Sonarqube
+#          command: |
+#            . venv/bin/activate
+#            make sonar
 
   deploy-test:
     docker:
-      - image: circleci/python:3.6
+      - image: cloudreach/sceptre-circleci:0.7.0
 
     steps:
       - checkout
@@ -162,7 +162,7 @@ jobs:
 
   deploy-production:
     docker:
-      - image: circleci/python:3.6
+      - image: cloudreach/sceptre-circleci:0.7.0
 
     steps:
       - checkout
@@ -199,30 +199,24 @@ jobs:
 workflows:
   build-test-deploy:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
+      - build
 
       - lint-and-unit-test:
           requires:
             - build
-          filters:
-            tags:
-              only: /.*/
 
-      - sonar:
-          context: sceptre-templates-context
-          requires:
-            - build
-            - lint-and-unit-test
+#      - sonar:
+#          context: sceptre-templates-context
+#          requires:
+#            - build
+#            - lint-and-unit-test
 
       - deploy-test:
           context: sceptre-templates-context
           requires:
             - build
             - lint-and-unit-test
-            - sonar
+#            - sonar
           filters:
             tags:
               only: /^v([0-9]+)\.([0-9]+)\.([0-9]+)(?:([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
@@ -238,7 +232,7 @@ workflows:
           requires:
             - build
             - lint-and-unit-test
-            - sonar
+#            - sonar
             - deploy-test
             - hold
           filters:
