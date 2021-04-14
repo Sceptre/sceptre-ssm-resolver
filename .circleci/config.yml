@@ -197,7 +197,8 @@ jobs:
             . venv/bin/activate
             twine upload -r pypi dist/*
 workflows:
-  build-test-deploy:
+  version: 2.1
+  build-test-and-deploy:
     jobs:
       - build
 
