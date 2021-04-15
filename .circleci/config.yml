@@ -184,7 +184,7 @@ jobs:
             . venv/bin/activate
             twine upload -r pypi dist/*
 workflows:
-  build-test-deploy:
+  pre-merge-workflow:
     jobs:
       - build
 
@@ -192,6 +192,8 @@ workflows:
           requires:
             - build
 
+  tag-workflow:
+    jobs:
       - deploy-test:
           context: sceptre-templates-context
           filters:
