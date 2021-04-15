@@ -184,7 +184,7 @@ jobs:
             . venv/bin/activate
             twine upload -r pypi dist/*
 workflows:
-  build-test-deploy:
+  untagged-workflow:
     jobs:
       - build
 
@@ -192,13 +192,13 @@ workflows:
           requires:
             - build
 
+  tagged-workflow:
+    jobs:
       - deploy-test:
           context: sceptre-templates-context
           filters:
             tags:
               only: /^v([0-9]+)\.([0-9]+)\.([0-9]+)(?:([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
-            branches:
-              ignore: /.*/
 
       - deploy-production:
           context: sceptre-templates-context
@@ -207,5 +207,3 @@ workflows:
           filters:
             tags:
               only: /^v([0-9]+)\.([0-9]+)\.([0-9]+)(?:([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
-            branches:
-              ignore: /.*/
