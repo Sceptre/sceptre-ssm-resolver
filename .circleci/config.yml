@@ -4,7 +4,6 @@ jobs:
   build:
     docker:
       - image: cloudreach/sceptre-circleci:0.8.0
-
     steps:
       - checkout
       - run:
@@ -114,7 +113,6 @@ jobs:
             . venv/bin/activate
             pip3 install --upgrade pip
             pip3 install -r requirements.txt
-
           paths:
             - 'venv'
       - run:

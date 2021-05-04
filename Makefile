@@ -14,18 +14,6 @@ lint:
 acceptance-test:
 	    behave acceptance-tests/
 
-sonar:
-	    @sonar-scanner \
-            -Dsonar.projectKey=Sceptre_${CIRCLE_PROJECT_REPONAME} \
-            -Dsonar.organization=sceptre \
-			-Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
-            -Dsonar.pullrequest.provider=GitHub\
-			-Dsonar.branch.name=${CIRCLE_BRANCH}\
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${SONAR_LOGIN}
-
-
 dist: clean
 	python3 setup.py sdist
 	python3 setup.py bdist_wheel
