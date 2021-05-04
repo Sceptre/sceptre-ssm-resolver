@@ -7,12 +7,6 @@ jobs:
 
     steps:
       - checkout
-
-      - restore_cache:
-          key:
-            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-            }}
-
       - run:
           name: Install Dependencies
           command: |
@@ -20,40 +14,22 @@ jobs:
             . venv/bin/activate
             pip3 install --upgrade pip
             pip3 install -r requirements.txt
-
-      - save_cache:
-          key:
-            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-            }}
-          paths:
-            - 'venv'
-
       - run:
           name: Install Resolver
           command: |
             . venv/bin/activate
             pip3 install -e .
-
       - persist_to_workspace:
           root: /home/circleci
           paths:
             - project
-
   lint-and-unit-test:
     docker:
       - image: cloudreach/sceptre-circleci:0.8.0
-
     steps:
       - attach_workspace:
           at: /home/circleci
-
       - checkout
-
-      - restore_cache:
-          key:
-            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-            }}
-
       - run:
           name: Install Dependencies
           command: |
@@ -61,58 +37,41 @@ jobs:
             . venv/bin/activate
             pip3 install --upgrade pip
             pip3 install -r requirements.txt
-
-      - save_cache:
-          key:
-            v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "Makefile"
-            }}
-          paths:
-            - 'venv'
-
       - run:
           name: Linting
           command: |
             . venv/bin/activate
             make lint
-
       - run:
           name: Unit Test
           command: |
             . venv/bin/activate
             mkdir test-reports
             make test
-
       - run:
           name: Coverage
           command: |
             . venv/bin/activate
             make coverage
-
       - store_test_results:
           path: test-reports
           destination: test-reports
-
       - store_test_results:
           path: coverage.xml
           destination: coverage-reports
-
       - store_artifacts:
           path: test-reports
           destination: test-reports
-
       - store_artifacts:
           path: coverage.xml
           destination: coverage-reports
-
       - persist_to_workspace:
           root: /home/circleci
           paths:
             - project
-
   deploy-test:
     docker:
       - image: cloudreach/sceptre-circleci:0.8.0
-
     steps:
       - checkout
       - run:
@@ -125,7 +84,6 @@ jobs:
 
           paths:
             - 'venv'
-
       - run:
           name: Initialise .pypirc
           command: |
@@ -134,23 +92,19 @@ jobs:
             echo -e "username: $PYPI_TEST_USER" >> ~/.pypirc
             echo -e "password: $PYPI_TEST_PASSWORD" >> ~/.pypirc
             echo -e "repository: https://test.pypi.org/legacy/" >> ~/.pypirc
-
       - run:
           name: Create Distribution
           command: |
             . venv/bin/activate
             make dist
-
       - run:
           name: Upload to PyPi
           command: |
             . venv/bin/activate
             twine upload -r test-pypi dist/*
-
   deploy-production:
     docker:
       - image: cloudreach/sceptre-circleci:0.8.0
-
     steps:
       - checkout
       - run:
@@ -163,7 +117,6 @@ jobs:
 
           paths:
             - 'venv'
-
       - run:
           name: init .pypirc
           command: |
@@ -171,13 +124,11 @@ jobs:
             echo -e "[pypi]" >> ~/.pypirc
             echo -e "username: $PYPI_PROD_USER" >> ~/.pypirc
             echo -e "password: $PYPI_PROD_PASSWORD" >> ~/.pypirc
-
       - run:
           name: Create Distribution
           command: |
             . venv/bin/activate
             make dist
-
       - run:
           name: Upload to PyPi
           command: |
@@ -190,7 +141,7 @@ workflows:
       - lint-and-unit-test:
           requires:
             - build
-  tag:
+  publish:
     jobs:
       - deploy-test:
           context: sceptre-templates-context
