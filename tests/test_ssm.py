@@ -12,8 +12,10 @@ from resolver.ssm import SSM, SsmBase
 from resolver.exceptions import ParameterNotFoundError
 
 
-class TestSsmResolver(object):
+region = 'us-east-1'
 
+
+class TestSsmResolver(object):
     def test_resolve_str_arg_no_param_name(self):
         stack = MagicMock(spec=Stack)
         stack.profile = "test_profile"
@@ -42,6 +44,7 @@ class TestSsmResolver(object):
     def test_resolve_str_arg(self, mock_get_parameter_value):
         stack = MagicMock(spec=Stack)
         stack.profile = "test_profile"
+        stack.region = region
         stack.dependencies = []
         stack._connection_manager = MagicMock(spec=ConnectionManager)
         stack_ssm_resolver = SSM(
@@ -50,7 +53,7 @@ class TestSsmResolver(object):
         mock_get_parameter_value.return_value = "parameter_value"
         stack_ssm_resolver.resolve()
         mock_get_parameter_value.assert_called_once_with(
-            "/dev/DbPassword", "test_profile"
+            "/dev/DbPassword", region, "test_profile"
         )
 
     @patch(
@@ -59,6 +62,7 @@ class TestSsmResolver(object):
     def test_resolve_obj_arg_no_profile(self, mock_get_parameter_value):
         stack = MagicMock(spec=Stack)
         stack.profile = "test_profile"
+        stack.region = region
         stack.dependencies = []
         stack._connection_manager = MagicMock(spec=ConnectionManager)
         stack_ssm_resolver = SSM(
@@ -67,7 +71,7 @@ class TestSsmResolver(object):
         mock_get_parameter_value.return_value = "parameter_value"
         stack_ssm_resolver.resolve()
         mock_get_parameter_value.assert_called_once_with(
-            "/dev/DbPassword", "test_profile"
+            "/dev/DbPassword", region, "test_profile"
         )
 
     @patch(
@@ -76,6 +80,7 @@ class TestSsmResolver(object):
     def test_resolve_obj_arg_profile_override(self, mock_get_parameter_value):
         stack = MagicMock(spec=Stack)
         stack.profile = "test_profile"
+        stack.region = region
         stack.dependencies = []
         stack._connection_manager = MagicMock(spec=ConnectionManager)
         stack_ssm_resolver = SSM(
@@ -84,7 +89,34 @@ class TestSsmResolver(object):
         mock_get_parameter_value.return_value = "parameter_value"
         stack_ssm_resolver.resolve()
         mock_get_parameter_value.assert_called_once_with(
-            "/dev/DbPassword", "new_profile"
+            "/dev/DbPassword", region, "new_profile"
+        )
+
+    @patch(
+        "resolver.ssm.SSM._get_parameter_value"
+    )
+    def test_resolve_obj_arg_region_override(self, mock_get_parameter_value):
+        stack = MagicMock(spec=Stack)
+        stack.profile = "test_profile"
+        stack.region = region
+        stack.dependencies = []
+        stack._connection_manager = MagicMock(spec=ConnectionManager)
+
+        custom_region = 'ca-central-1'
+        assert custom_region != region
+
+        stack_ssm_resolver = SSM(
+            {
+                "name": "/dev/DbPassword",
+                "region": custom_region,
+                "profile": "new_profile"
+            },
+            stack
+        )
+        mock_get_parameter_value.return_value = "parameter_value"
+        stack_ssm_resolver.resolve()
+        mock_get_parameter_value.assert_called_once_with(
+            "/dev/DbPassword", custom_region, "new_profile"
         )
 
 
@@ -129,7 +161,7 @@ class TestSsmBase(object):
                 "ARN": "arn:aws:ssm:us-east-1:111111111111:parameter/dev/DbPassword"
             }
         }
-        response = self.base_ssm._get_parameter_value("/dev/DbPassword")
+        response = self.base_ssm._get_parameter_value("/dev/DbPassword", region)
         assert response == "Secret"
 
     @patch(
@@ -143,7 +175,7 @@ class TestSsmBase(object):
         }
 
         with pytest.raises(KeyError):
-            self.base_ssm._get_parameter_value(None)
+            self.base_ssm._get_parameter_value(None, region)
 
     def test_request_parameter_with_unkown_boto_error(self):
         self.stack.connection_manager.call.side_effect = ClientError(
@@ -157,7 +189,7 @@ class TestSsmBase(object):
         )
 
         with pytest.raises(ClientError):
-            self.base_ssm._request_parameter(None)
+            self.base_ssm._request_parameter(None, region)
 
     def test_request_parameter_with_parameter_not_found(self):
         self.stack.connection_manager.call.side_effect = ClientError(
@@ -171,4 +203,4 @@ class TestSsmBase(object):
         )
 
         with pytest.raises(ParameterNotFoundError):
-            self.base_ssm._request_parameter(None)
+            self.base_ssm._request_parameter(None, region)
