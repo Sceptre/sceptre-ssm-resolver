@@ -14,7 +14,7 @@ region = "us-east-1"
 
 class TestSsmResolver(object):
     def test_resolve_str_arg_no_param_name(self):
-        #stack = Stack(name="foo",project_code="mar",region="us-east-1")
+        # stack = Stack(name="foo",project_code="mar",region="us-east-1")
         stack = MagicMock(spec=Stack)
         stack.name = "test_stack"
         stack.profile = "test_profile"
