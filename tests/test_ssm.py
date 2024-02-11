@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from mock import MagicMock, patch, sentinel
+from mock import MagicMock, patch
 
 from sceptre.connection_manager import ConnectionManager
 from sceptre.stack import Stack
 
-from resolver.ssm import SSM, SsmBase
-
+from resolver.ssm import SSM
 
 region = "us-east-1"
 
 
 class TestSsmResolver(object):
     def test_resolve_str_arg_no_param_name(self):
-        #stack = Stack(name="foo",project_code="mar",region="us-east-1")
+        # stack = Stack(name="foo",project_code="mar",region="us-east-1")
         stack = MagicMock(spec=Stack)
         stack.name = "test_stack"
         stack.profile = "test_profile"
