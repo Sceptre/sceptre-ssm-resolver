@@ -34,10 +34,11 @@ class SsmBase(Resolver):
         response = self._request_parameter(param, region, profile)
 
         try:
-            return response['Parameter']['Value']
+            return response["Parameter"]["Value"]
         except KeyError:
-            self.logger.error("%s - Invalid response looking for: %s",
-                              self.stack.name, param)
+            self.logger.error(
+                "%s - Invalid response looking for: %s", self.stack.name, param
+            )
             raise
 
     def _request_parameter(self, param, region, profile=None):
@@ -54,15 +55,13 @@ class SsmBase(Resolver):
             response = connection_manager.call(
                 service="ssm",
                 command="get_parameter",
-                kwargs={"Name": param,
-                        "WithDecryption": True},
+                kwargs={"Name": param, "WithDecryption": True},
                 region=region,
-                profile=profile
+                profile=profile,
             )
         except ClientError as e:
             if "ParameterNotFound" in e.response["Error"]["Code"]:
-                self.logger.error("%s - ParameterNotFound: %s",
-                                  self.stack.name, param)
+                self.logger.error("%s - ParameterNotFound: %s", self.stack.name, param)
                 raise ParameterNotFoundError(e.response["Error"]["Message"])
             else:
                 raise e
@@ -93,20 +92,18 @@ class SSM(SsmBase):
             raise ValueError("Missing SSM parameter name")
 
         value = None
-        self.logger.debug(
-            "Resolving SSM parameter: {0}".format(args)
-        )
+        self.logger.debug("Resolving SSM parameter: {0}".format(args))
         name = self.argument
         region = self.stack.region
         profile = self.stack.profile
         if isinstance(args, dict):
-            if 'name' in args:
-                name = args['name']
+            if "name" in args:
+                name = args["name"]
             else:
                 raise ValueError("Missing SSM parameter name")
 
-            profile = args.get('profile', profile)
-            region = args.get('region', region)
+            profile = args.get("profile", profile)
+            region = args.get("region", region)
 
         value = self._get_parameter_value(name, region, profile)
         return value

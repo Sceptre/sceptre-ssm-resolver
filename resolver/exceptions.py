@@ -5,4 +5,5 @@ class ParameterNotFoundError(Exception):
     """
     Error raised when the SSM parameter does not exist
     """
+
     pass
